@@ -8,9 +8,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => "https://github.com/Rehsco/GPUImage2.git" }
 
   s.ios.xcconfig = { 'CLANG_MODULES_AUTOLINK' => 'YES', 'OTHER_SWIFT_FLAGS' => '$(inherited) -DGLES' }
-  s.ios.exclude_files = 'framework/Source/Mac/**/*'
-  s.ios.exclude_files = 'framework/Source/Linux/**/*'
-  s.ios.exclude_files = 'framework/Source/Operations/Shaders/ConvertedShaders_GL.swift'
+  s.ios.exclude_files = 'framework/Source/Mac/**/*', 'framework/Source/Linux/**/*','framework/Source/Operations/Shaders/ConvertedShaders_GL.swift'
 
   s.framework = 'OpenGLES'
   s.framework = 'CoreMedia'
