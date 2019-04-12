@@ -11,8 +11,8 @@ public enum PhysicalCameraLocation {
     // Documentation: "The front-facing camera would always deliver buffers in AVCaptureVideoOrientationLandscapeLeft and the back-facing camera would always deliver buffers in AVCaptureVideoOrientationLandscapeRight."
     func imageOrientation() -> ImageOrientation {
         switch self {
-            case .backFacing: return .landscapeRight
-            case .frontFacing: return .landscapeLeft
+            case .backFacing: return .portrait
+            case .frontFacing: return .portrait
         }
     }
     
@@ -35,7 +35,7 @@ public enum PhysicalCameraLocation {
     }
 }
 
-struct CameraError: Error {
+public struct CameraError: Error {
 }
 
 let initialBenchmarkFramesToIgnore = 5
@@ -66,7 +66,7 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
     public let targets = TargetContainer()
     public var delegate: CameraDelegate?
     public let captureSession:AVCaptureSession
-    let inputCamera:AVCaptureDevice!
+    public let inputCamera:AVCaptureDevice!
     let videoInput:AVCaptureDeviceInput!
     let videoOutput:AVCaptureVideoDataOutput!
     var microphone:AVCaptureDevice?
@@ -150,6 +150,20 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
             captureSession.addOutput(videoOutput)
         }
         captureSession.sessionPreset = sessionPreset
+
+        var captureConnection: AVCaptureConnection!
+        for connection in videoOutput.connections {
+            for port in connection.inputPorts {
+                if port.mediaType == AVMediaType.video {
+                    captureConnection = connection
+                    captureConnection.isVideoMirrored = location == .frontFacing
+                }
+            }
+        }
+
+        if captureConnection.isVideoOrientationSupported {
+            captureConnection.videoOrientation = .portrait
+        }
         captureSession.commitConfiguration()
 
         super.init()
@@ -160,7 +174,7 @@ public class Camera: NSObject, ImageSource, AVCaptureVideoDataOutputSampleBuffer
     deinit {
         sharedImageProcessingContext.runOperationSynchronously{
             self.stopCapture()
-            self.videoOutput.setSampleBufferDelegate(nil, queue:nil)
+            self.videoOutput?.setSampleBufferDelegate(nil, queue:nil)
             self.audioOutput?.setSampleBufferDelegate(nil, queue:nil)
         }
     }
